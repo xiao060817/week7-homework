@@ -4,6 +4,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -24,12 +25,38 @@ public class DogApiBreedFetcher implements BreedFetcher {
      * @throws BreedNotFoundException if the breed does not exist (or if the API call fails for any reason)
      */
     @Override
-    public List<String> getSubBreeds(String breed) {
+    public List<String> getSubBreeds(String breed) throws BreedFetcher.BreedNotFoundException{
         // TODO Task 1: Complete this method based on its provided documentation
         //      and the documentation for the dog.ceo API. You may find it helpful
         //      to refer to the examples of using OkHttpClient from the last lab,
         //      as well as the code for parsing JSON responses.
         // return statement included so that the starter code can compile and run.
-        return new ArrayList<>();
+        final String url;
+        url = "https://dog.ceo/api/breed/%s/list";
+        final Request request = new Request.Builder()
+                .url(String.format(url, breed)) //
+                .method("GET", null)
+                .build();
+        try(
+            final Response response = client.newCall(request).execute())
+        {
+            if (!response.isSuccessful() || response.body() == null) {
+                throw new BreedFetcher.BreedNotFoundException("HTTP " + response.code() + " from dog.ceo");
+            }
+            final JSONObject responseBody = new JSONObject(response.body().string());
+            if (responseBody.getString("status").equalsIgnoreCase("success")) {
+                JSONArray subBreedsArray = responseBody.getJSONArray("message");
+                List<String> subBreeds = new ArrayList<>();
+                for (int i = 0; i < subBreedsArray.length(); i++) {
+                    subBreeds.add(subBreedsArray.getString(i));
+                }
+                return subBreeds;
+            }
+            else {
+                throw new BreedFetcher.BreedNotFoundException(breed);
+            }
+            } catch (IOException e) {
+                throw new BreedFetcher.BreedNotFoundException("Network or IO error occurred");
+            }
+        }
     }
-}
