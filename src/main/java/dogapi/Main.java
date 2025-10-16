@@ -32,7 +32,7 @@ public class Main {
             return a.size();
         }
         catch (BreedNotFoundException e) {
-            return -1;
+            return 0;
         }
     }
 }
