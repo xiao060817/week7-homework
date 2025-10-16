@@ -11,8 +11,18 @@ class CachingBreedFetcherTest {
         BreedFetcherForLocalTesting mock = new BreedFetcherForLocalTesting();
         CachingBreedFetcher cachingFetcher = new CachingBreedFetcher(mock);
 
-        List<String> firstCall = cachingFetcher.getSubBreeds("hound");
-        List<String> secondCall = cachingFetcher.getSubBreeds("hound");
+        List<String> firstCall = null;
+        try {
+            firstCall = cachingFetcher.getSubBreeds("hound");
+        } catch (BreedFetcher.BreedNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        List<String> secondCall = null;
+        try {
+            secondCall = cachingFetcher.getSubBreeds("hound");
+        } catch (BreedFetcher.BreedNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         assertEquals(List.of("afghan", "basset"), firstCall);
         assertEquals(firstCall, secondCall);
@@ -44,8 +54,16 @@ class CachingBreedFetcherTest {
         BreedFetcherForLocalTesting mock = new BreedFetcherForLocalTesting();
         CachingBreedFetcher cachingFetcher = new CachingBreedFetcher(mock);
 
-        cachingFetcher.getSubBreeds("hound");
-        cachingFetcher.getSubBreeds("hound");
+        try {
+            cachingFetcher.getSubBreeds("hound");
+        } catch (BreedFetcher.BreedNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            cachingFetcher.getSubBreeds("hound");
+        } catch (BreedFetcher.BreedNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         assertEquals(1, cachingFetcher.getCallsMade(),
                 "Fetcher should only be called once due to caching. " +
